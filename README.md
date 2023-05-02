@@ -1,4 +1,4 @@
-k8s - Deploying a NodeJS app in Minikube (Local development)
+# k8s - Deploying a NodeJS app in Minikube (Local development)
 
 This blog will walk you through the steps of how to deploy a NodeJS application in MiniKube. We will be using a local docker image without relying on a Docker registry.
 
@@ -21,9 +21,9 @@ First, let’s create a new folder to add our source codes. I will name this as 
 NodeJS app
 In your favorite terminal navigate to node-app folder and run
 
-npm init -y # Generate package.json
-npm i express # Install express
-touch index.js # Create a new index.js file
+npm init -y ### Generate package.json
+npm i express ### Install express
+touch index.js ### Create a new index.js file
 (Depending on your operating system, alter thetouch command to create a new file)
 
 At this stage, you are free to create any NodeJS app you want. The app I will be building is a web server that returns you a set of Star Wars character names.
@@ -91,7 +91,7 @@ npm start
 Now you should only get 3 Star Wars characters.
 Now we know our server is working fine.
 
-### Dockerfile
+##### Dockerfile
 
 In the same node-app directory, create aDockerfile and place the following content.
 
@@ -114,7 +114,7 @@ Now if you run docker images you should see the newly created image starwars-nod
 ```
 docker run -d -p 3000:3000 starwars-node
 
-# 8b55e8c1c32d39a5b39ab38cb41c80e6cc05843a0baef625664939435183f51b
+### 8b55e8c1c32d39a5b39ab38cb41c80e6cc05843a0baef625664939435183f51b
 ```
 
 You should get the id of the newly created container.
@@ -181,7 +181,7 @@ Now to create Pods run the following command.
 kubectl apply -f sw-deployment.yaml
 ```
 
-# deployment.apps/star-wars-deployment created
+### deployment.apps/star-wars-deployment created
 
 Now if you run the below command. You should see two pods.
 
@@ -195,7 +195,7 @@ If you look really close atSTATUS of each pod, they might be something like ErrI
 kubectl logs <pod_name>
 ```
 
-# Error from server (BadRequest): container "star-wars" in pod "<pod_name>" is waiting to start: trying and failing to pull image
+### Error from server (BadRequest): container "star-wars" in pod "<pod_name>" is waiting to start: trying and failing to pull image
 
 It is failing to pull the image. Can you spot the issue here?
 
@@ -208,46 +208,56 @@ eval $(minikube docker-env)
 docker build -t starwars-node .
 ```
 
-# Additionally you can check to see if starwars-node Docker image is in minikube by
+### Additionally you can check to see if starwars-node Docker image is in minikube by
 
 ```
 minikube ssh
 docker@minikube:~$ dokcer images
 ```
 
-# You should see starward-node docker image
+### You should see starward-node docker image
 
 In the sw.deployment.yaml add the following line
 
 ```
 ports:
 - containerPort: 3000
-imagePullPolicy: Never # Image should not be pulled
+imagePullPolicy: Never ### Image should not be pulled
 ```
 
 Note: refer blogpost for additional information on this issue.
 
 We need to start over. Let’s delete the existing deployment and re-run the pod creation. Go to kubernetes-test folder and run,
 
+```
 kubectl get deployment
+```
 
-# You'll see star-wars-deployment
+### You'll see star-wars-deployment
 
+```
 kubectl delete deployment star-wars-deployment
+```
 
-# deployment.apps "star-wars-deployment" deleted
+### deployment.apps "star-wars-deployment" deleted
 
+```
 kubectl get deployment
+```
 
-# You should not see star-wars-deployment
+### You should not see star-wars-deployment
 
+```
 kubectl apply -f sw-deployment.yaml
+```
 
-# deployment.apps/star-wars-deployment created
+### deployment.apps/star-wars-deployment created
 
+```
 kubectl get pod
+```
 
-# You should see two pods in "Running" STATUS
+### You should see two pods in "Running" STATUS
 
 Now we have two pods running. Now what?
 
@@ -284,15 +294,19 @@ Now run the following commands,
 
 kubectl apply -f sw-service.yaml
 
-# service/sw-service created
+### service/sw-service created
 
+```
 kubectl get service
+```
 
-# Observe that sw-service created
+### Observe that sw-service created
 
+```
 minikube service sw-service --url
 
-# <http://<external_service_ip>:31000>
+http://<external_service_ip>:31000
+```
 
 Now run curl <http://<external_service_ip>:31000> and see that you can get your favorite Star Wars character. This means we have successfully deployed the NodeJS application in the Kubernetes cluster. Yeyyy!!!
 
@@ -301,12 +315,15 @@ If you remember, we defined an environment variable MAX_STAR_WARS_CHARACTERS in 
 
 Let’s add another file envs.yaml in the kubernetes-test folder with the content.
 
+```
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: sw-envs
 data:
   maxStarWarsCharacters: "10"
+```
+
 Just as above we have defined apiVersion, kind and metadata attributed. The data field contains the ENVs we need to inject into the containers.
 
 Now there should be a way to inject this ENV to the starwars-node . It is done by adding container.env field in the sw-deployment.yaml . Add the env section to the .yaml file.
@@ -331,6 +348,6 @@ kubectl apply -f envs.yaml
 kubectl apply -f sw-deployment.yaml
 ```
 
-Now curl <http://<external_service_ip>:31000> and see that you now have 10 Star Wars characters.
+Now curl `http://<external_service_ip>:31000` and see that you now have 10 Star Wars characters.
 
 And that’s how you can work with minikube and local Docker images.
